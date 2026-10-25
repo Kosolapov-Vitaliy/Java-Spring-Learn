@@ -3,10 +3,13 @@ package com.example.springLPP.service;
 import com.example.springLPP.Priority;
 import com.example.springLPP.Status;
 import com.example.springLPP.Task;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 
+@Service
 public class TaskService {
     private HashMap<Long, Task> taskMap;
     TaskService(){
@@ -22,7 +25,11 @@ public class TaskService {
                 LocalDateTime.now().plusDays(7), Priority.LOW));
     }
     public Task getId(Long id){
-        return taskMap.get(id);
+        if(taskMap.containsKey(id)){
+            return taskMap.get(id);
+        }else{
+            throw new NoSuchElementException("Not found task id = "+id);
+        }
     }
     public HashMap<Long, Task> getMap(){
         return taskMap;
