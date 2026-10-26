@@ -4,13 +4,14 @@ import com.example.springLPP.Task;
 import com.example.springLPP.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 
 @RestController
+@RequestMapping("/task")
 public class TaskController {
     private static final Logger log =  LoggerFactory.getLogger(TaskController.class);
 
@@ -22,17 +23,41 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public Task getTaskId(
+    public ResponseEntity<Task> getTaskId(
             @PathVariable("id") Long id
     ){
         String logText = "Called getTaskedId with id = "+ id;
         log.info(logText);
-        return taskService.getId(id);
+        return ResponseEntity.status(HttpStatus.OK)
+                        .body(taskService.getId(id));
     }
 
     @GetMapping
-    public HashMap<Long, Task> getTaskMap(){
+    public ResponseEntity<HashMap<Long, Task>> getTaskMap(){
         log.info("Called getTaskMap with id = ");
-        return taskService.getMap();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(taskService.getMap());
+    }
+
+    @PostMapping
+    public ResponseEntity<Task> createTask(@RequestBody Task taskToCreate){
+        log.info("Called createTask");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(taskService.createTask(taskToCreate));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<HashMap<Long, Task>> deleteTask(@PathVariable("id") Long id){
+        log.info("Called deleteTask");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(taskService.deleteTask(id));
+    }
+
+    @PutMapping ("/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable("id") Long id,
+                                           @RequestBody Task taskToUpdate){
+        log.info("Called updateTask");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(taskService.updateTask(id, taskToUpdate));
     }
 }
