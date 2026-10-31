@@ -47,10 +47,10 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<HashMap<Long, Task>> deleteTask(@PathVariable("id") Long id){
+    public ResponseEntity<Void> deleteTask(@PathVariable("id") Long id){
         log.info("Called deleteTask");
         return ResponseEntity.status(HttpStatus.OK)
-                .body(taskService.deleteTask(id));
+                .build();
     }
 
     @PutMapping ("/{id}")

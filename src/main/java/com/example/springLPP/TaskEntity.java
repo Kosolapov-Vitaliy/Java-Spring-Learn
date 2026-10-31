@@ -1,0 +1,103 @@
+package com.example.springLPP;
+
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+
+@Table(name = "task")
+@Entity
+public class TaskEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Column(name ="creatorId")
+    private Long creatorId;
+    @Column(name ="makerId")
+    private Long makerId;
+    @Enumerated(EnumType.STRING)
+    @Column(name ="status")
+    private Status status;
+    @Column(name ="createData")
+    private LocalDateTime createDataTime;
+    @Column(name ="deadlineData")
+    private LocalDateTime deadlineData;
+    @Enumerated(EnumType.STRING)
+    @Column(name ="priority")
+    private Priority priority;
+
+    public TaskEntity() {
+    }
+
+    public TaskEntity(long id,
+                      Long creatorId,
+                      Long makerId,
+                      Status status,
+                      LocalDateTime createDataTime,
+                      LocalDateTime deadlineData,
+                      Priority priority) {
+        this.id = id;
+        this.creatorId = creatorId;
+        this.makerId = makerId;
+        this.status = status;
+        this.createDataTime = createDataTime;
+        this.deadlineData = deadlineData;
+        this.priority = priority;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public Long getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Long creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public Long getMakerId() {
+        return makerId;
+    }
+
+    public void setMakerId(Long makerId) {
+        this.makerId = makerId;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreateDataTime() {
+        return createDataTime;
+    }
+
+    public void setCreateDataTime(LocalDateTime createDataTime) {
+        this.createDataTime = createDataTime;
+    }
+
+    public LocalDateTime getDeadlineData() {
+        return deadlineData;
+    }
+
+    public void setDeadlineData(LocalDateTime deadlineData) {
+        this.deadlineData = deadlineData;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+}

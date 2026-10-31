@@ -1,23 +1,48 @@
 package com.example.springLPP.service;
 
-import com.example.springLPP.Priority;
 import com.example.springLPP.Status;
 import com.example.springLPP.Task;
+import com.example.springLPP.TaskEntity;
+import com.example.springLPP.TaskRepo;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskService {
+
     private HashMap<Long, Task> taskMap;
     AtomicLong counter;
-    TaskService(){
+
+    private final TaskRepo repo;
+
+    TaskService(TaskRepo repo){
+        this.repo = repo;
         taskMap = new HashMap<>();
         counter=new AtomicLong(0);
     }
+
+    public List<Task> findAllTask(){
+        List<TaskEntity> allEntities = repo.findAll();
+        return allEntities.stream().map(it->
+                new Task(
+                        it.getId(),
+                        it.getCreatorId(),
+                        it.getMakerId(),
+                        it.getStatus(),
+                        it.getCreateDataTime(),
+                        it.getDeadlineData(),
+                        it.getPriority()
+                )).toList();
+    }
+
+
+
+    /// До внедрения БД
     public Task getId(Long id){
         if(taskMap.containsKey(id)){
             return taskMap.get(id);
@@ -69,6 +94,9 @@ public class TaskService {
         if(!taskId.equals(updTask.id())){
             throw new IllegalArgumentException("The request id and the id in the request body do not match");
         }
+        if(taskMap.get(taskId).status().equals(Status.DONE)&&!(updTask.status().equals(Status.IN_PROGRESS))){
+            throw new IllegalArgumentException("Status cannot be done");
+        }
         Task newTask = new Task(
                 taskId,
                 updTask.creatorId(),
@@ -78,6 +106,7 @@ public class TaskService {
                 updTask.deadlineData(),
                 updTask.priority()
         );
+        taskMap.put(taskId, updTask);
         return newTask;
     }
 
