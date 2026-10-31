@@ -1,6 +1,7 @@
 package com.example.springLPP.Controller;
 
 import com.example.springLPP.Task;
+import com.example.springLPP.TaskEntity;
 import com.example.springLPP.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/task")
@@ -33,10 +35,10 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<HashMap<Long, Task>> getTaskMap(){
+    public ResponseEntity<List<Task>> getAllTask(){
         log.info("Called getTaskMap with id = ");
         return ResponseEntity.status(HttpStatus.OK)
-                .body(taskService.getMap());
+                .body(taskService.findAllTask());
     }
 
     @PostMapping
@@ -46,9 +48,17 @@ public class TaskController {
                 .body(taskService.createTask(taskToCreate));
     }
 
+    @PostMapping("/{id}/start")
+    public ResponseEntity<Task> startTask(@PathVariable("id") Long id){
+        log.info("Called startTask");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(taskService.startTask(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable("id") Long id){
         log.info("Called deleteTask");
+        taskService.deleteTask(id);
         return ResponseEntity.status(HttpStatus.OK)
                 .build();
     }

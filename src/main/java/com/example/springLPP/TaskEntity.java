@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class TaskEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name ="creatorId")
     private Long creatorId;
@@ -29,7 +29,7 @@ public class TaskEntity {
     public TaskEntity() {
     }
 
-    public TaskEntity(long id,
+    public TaskEntity(Long  id,
                       Long creatorId,
                       Long makerId,
                       Status status,
@@ -45,7 +45,7 @@ public class TaskEntity {
         this.priority = priority;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

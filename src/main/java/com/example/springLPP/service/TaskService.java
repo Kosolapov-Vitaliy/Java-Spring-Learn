@@ -4,6 +4,7 @@ import com.example.springLPP.Status;
 import com.example.springLPP.Task;
 import com.example.springLPP.TaskEntity;
 import com.example.springLPP.TaskRepo;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,43 +16,24 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class TaskService {
 
-    private HashMap<Long, Task> taskMap;
-    AtomicLong counter;
-
     private final TaskRepo repo;
 
     TaskService(TaskRepo repo){
         this.repo = repo;
-        taskMap = new HashMap<>();
-        counter=new AtomicLong(0);
     }
 
     public List<Task> findAllTask(){
         List<TaskEntity> allEntities = repo.findAll();
-        return allEntities.stream().map(it->
-                new Task(
-                        it.getId(),
-                        it.getCreatorId(),
-                        it.getMakerId(),
-                        it.getStatus(),
-                        it.getCreateDataTime(),
-                        it.getDeadlineData(),
-                        it.getPriority()
-                )).toList();
+        return allEntities.
+                stream().
+                map(this::toDomainTask).
+                toList();
     }
 
-
-
-    /// До внедрения БД
     public Task getId(Long id){
-        if(taskMap.containsKey(id)){
-            return taskMap.get(id);
-        }else{
-            throw new NoSuchElementException("Not found task id = "+id);
-        }
-    }
-    public HashMap<Long, Task> getMap(){
-        return taskMap;
+        TaskEntity taskEntity = repo.findById(id).orElseThrow(()->
+                new EntityNotFoundException("Not found task by id = "+id));
+        return toDomainTask(taskEntity);
     }
 
     public Task createTask(Task task){
@@ -64,8 +46,8 @@ public class TaskService {
         if(task.createDataTime()!=null){
             throw new IllegalArgumentException("createDataTime should be Empty");
         }
-        Task newTask = new Task(
-                counter.incrementAndGet(),
+        TaskEntity entityToSave = new TaskEntity(
+                null,
                 task.creatorId(),
                 task.makerId(),
                 Status.CREATED,
@@ -73,32 +55,54 @@ public class TaskService {
                 task.deadlineData(),
                 task.priority()
         );
-        taskMap.put(newTask.id(), newTask);
-        return newTask;
+        TaskEntity savedEntity = repo.save(entityToSave);
+
+        return toDomainTask(savedEntity);
     }
 
-    public HashMap<Long, Task> deleteTask(Long taskId){
-        if(taskMap.containsKey(taskId)){
-            taskMap.remove(taskId);
-            return taskMap;
+    public Task startTask(Long taskId) {
+        TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
+                new EntityNotFoundException("Not found task id = "+taskId));
+        Long makerId = taskEntity.getMakerId();
+        List<TaskEntity> taskEntities = repo.findAllByMakerId(makerId);
+        if (taskEntities.size()>4){
+            throw new IllegalArgumentException("Active task count > 4");
         }
-        else{
-            throw new NoSuchElementException("Not found task id = "+taskId);
-        }
+        TaskEntity updateTaskEntity = new TaskEntity(
+                taskEntity.getId(),
+                taskEntity.getCreatorId(),
+                taskEntity.getMakerId(),
+                Status.IN_PROGRESS,
+                taskEntity.getCreateDataTime(),
+                taskEntity.getDeadlineData(),
+                taskEntity.getPriority()
+        );
+        repo.save(updateTaskEntity);
+        return toDomainTask(updateTaskEntity);
     }
+
 
     public Task updateTask(Long taskId, Task updTask){
-        if(!taskMap.containsKey(taskId)){
-            throw new NoSuchElementException("Not found task id = "+taskId);
+        if(!repo.existsById(taskId)){
+            throw new EntityNotFoundException("Not found task id = "+taskId);
         }
+        TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
+            new EntityNotFoundException("Not found task id = "+taskId));
         if(!taskId.equals(updTask.id())){
             throw new IllegalArgumentException("The request id and the id in the request body do not match");
         }
-        if(taskMap.get(taskId).status().equals(Status.DONE)&&!(updTask.status().equals(Status.IN_PROGRESS))){
+        if(repo.getById(taskId).getStatus().equals(Status.DONE)&&!(updTask.status().equals(Status.IN_PROGRESS))){
             throw new IllegalArgumentException("Status cannot be done");
         }
-        Task newTask = new Task(
-                taskId,
+        if(updTask.status().equals(Status.IN_PROGRESS)){
+            Long makerId = taskEntity.getMakerId();
+            List<TaskEntity> taskEntities = repo.findAllByMakerId(makerId);
+            if (taskEntities.size()>4){
+                throw new IllegalArgumentException("Active task count > 4");
+            }
+        }
+        TaskEntity updateEntity = new TaskEntity(
+                taskEntity.getId(),
                 updTask.creatorId(),
                 updTask.makerId(),
                 updTask.status(),
@@ -106,8 +110,27 @@ public class TaskService {
                 updTask.deadlineData(),
                 updTask.priority()
         );
-        taskMap.put(taskId, updTask);
-        return newTask;
+        repo.save(updateEntity);
+        return toDomainTask(updateEntity);
+    }
+
+    public void deleteTask(Long taskId){
+        if(!repo.existsById(taskId)){
+            throw new EntityNotFoundException("Not found task id = "+taskId);
+        }
+        repo.deleteById(taskId);
+    }
+
+    private Task toDomainTask(TaskEntity tEntity){
+        return new Task(
+                tEntity.getId(),
+                tEntity.getCreatorId(),
+                tEntity.getMakerId(),
+                tEntity.getStatus(),
+                tEntity.getCreateDataTime(),
+                tEntity.getDeadlineData(),
+                tEntity.getPriority()
+        );
     }
 
 
