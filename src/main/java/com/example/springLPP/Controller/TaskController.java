@@ -2,6 +2,7 @@ package com.example.springLPP.Controller;
 
 import com.example.springLPP.Task;
 import com.example.springLPP.service.TaskService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task taskToCreate){
+    public ResponseEntity<Task> createTask(@RequestBody @Valid Task taskToCreate){
         log.info("Called createTask");
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(taskService.createTask(taskToCreate));
@@ -71,7 +72,7 @@ public class TaskController {
 
     @PutMapping ("/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable("id") Long id,
-                                           @RequestBody Task taskToUpdate){
+                                           @RequestBody @Valid Task taskToUpdate){
         log.info("Called updateTask");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(taskService.updateTask(id, taskToUpdate));

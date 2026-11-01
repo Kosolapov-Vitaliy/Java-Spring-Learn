@@ -19,6 +19,14 @@ public class TaskService {
         this.repo = repo;
     }
 
+
+
+    public Task getId(Long id){
+        TaskEntity taskEntity = repo.findById(id).orElseThrow(()->
+                new EntityNotFoundException("Not found task by id = "+id));
+        return toDomainTask(taskEntity);
+    }
+
     public List<Task> findAllTask(){
         List<TaskEntity> allEntities = repo.findAll();
         return allEntities.
@@ -27,28 +35,16 @@ public class TaskService {
                 toList();
     }
 
-    public Task getId(Long id){
-        TaskEntity taskEntity = repo.findById(id).orElseThrow(()->
-                new EntityNotFoundException("Not found task by id = "+id));
-        return toDomainTask(taskEntity);
-    }
-
     public Task createTask(Task task){
-        if(task.id()!=null){
-            throw new IllegalArgumentException("Id should be Empty");
-        }
-        if(task.status()!=null){
-            throw new IllegalArgumentException("Status should be Empty");
-        }
-        if(task.createDataTime()!=null){
-            throw new IllegalArgumentException("createDataTime should be Empty");
+        if(!task.createDataTime().isBefore(task.deadlineData())){
+            throw new IllegalArgumentException("Create date must be earlier than deadline");
         }
         TaskEntity entityToSave = new TaskEntity(
                 null,
                 task.creatorId(),
                 task.makerId(),
                 Status.CREATED,
-                LocalDateTime.now(),
+                task.createDataTime(),
                 task.deadlineData(),
                 task.priority()
         );
@@ -109,11 +105,11 @@ public class TaskService {
     public Task updateTask(Long taskId, Task updTask){
         TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
             new EntityNotFoundException("Not found task id = "+taskId));
-        if(!taskId.equals(updTask.id())){
-            throw new IllegalArgumentException("The request id and the id in the request body do not match");
-        }
         if(taskEntity.getStatus().equals(Status.DONE)){
             throw new IllegalArgumentException("Status cannot be done");
+        }
+        if(!taskEntity.getCreateDataTime().isBefore(updTask.deadlineData())){
+            throw new IllegalArgumentException("Create date must be earlier than deadline");
         }
         TaskEntity updateEntity = new TaskEntity(
                 taskEntity.getId(),
