@@ -11,19 +11,19 @@ public class TaskEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name ="creatorId")
+    @Column(name ="creatorId", nullable = false)
     private Long creatorId;
-    @Column(name ="makerId")
+    @Column(name ="makerId", nullable = false)
     private Long makerId;
     @Enumerated(EnumType.STRING)
-    @Column(name ="status")
+    @Column(name ="status", nullable = false)
     private Status status;
-    @Column(name ="createData")
+    @Column(name ="createData", nullable = false)
     private LocalDateTime createDataTime;
-    @Column(name ="deadlineData")
+    @Column(name ="deadlineData", nullable = false)
     private LocalDateTime deadlineData;
     @Enumerated(EnumType.STRING)
-    @Column(name ="priority")
+    @Column(name ="priority", nullable = false)
     private Priority priority;
 
     public TaskEntity() {

@@ -7,7 +7,6 @@ import com.example.springLPP.TaskRepo;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -57,9 +56,6 @@ public class TaskService {
         TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
                 new EntityNotFoundException("Not found task id = "+taskId));
         Long makerId = taskEntity.getMakerId();
-        if(makerId == null){
-            throw new IllegalArgumentException("The makerId field must be filled in");
-        }
         if(taskEntity.getStatus().equals(Status.IN_PROGRESS)){
             throw new IllegalArgumentException("Status can not be IN_PROGRESS");
         }
