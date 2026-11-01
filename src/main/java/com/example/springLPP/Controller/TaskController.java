@@ -1,7 +1,6 @@
 package com.example.springLPP.Controller;
 
 import com.example.springLPP.Task;
-import com.example.springLPP.TaskEntity;
 import com.example.springLPP.service.TaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -48,12 +46,20 @@ public class TaskController {
                 .body(taskService.createTask(taskToCreate));
     }
 
-    @PostMapping("/{id}/start")
+    @PutMapping("/{id}/start")
     public ResponseEntity<Task> startTask(@PathVariable("id") Long id){
         log.info("Called startTask");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(taskService.startTask(id));
     }
+
+    @PutMapping("/{id}/end")
+    public ResponseEntity<Task> endTask(@PathVariable("id") Long id){
+        log.info("Called endTask");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(taskService.endTask(id));
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable("id") Long id){

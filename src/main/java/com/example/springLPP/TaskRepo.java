@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface TaskRepo extends JpaRepository<TaskEntity, Long> {
     List<TaskEntity> findAllByMakerId(Long makerId);
+    List<TaskEntity> findAllByMakerIdAndStatus(Long makerId, Status status);
 
 }

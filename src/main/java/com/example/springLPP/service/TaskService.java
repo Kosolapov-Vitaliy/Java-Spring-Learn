@@ -8,10 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TaskService {
@@ -64,9 +61,17 @@ public class TaskService {
         TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
                 new EntityNotFoundException("Not found task id = "+taskId));
         Long makerId = taskEntity.getMakerId();
-        List<TaskEntity> taskEntities = repo.findAllByMakerId(makerId);
+        if(makerId == null){
+            throw new IllegalArgumentException("The makerId field must be filled in");
+        }
+        if(taskEntity.getStatus().equals(Status.IN_PROGRESS)){
+            throw new IllegalArgumentException("Status can not be IN_PROGRESS");
+        }
+        List<TaskEntity> taskEntities = repo.findAllByMakerIdAndStatus(makerId, Status.IN_PROGRESS);
         if (taskEntities.size()>4){
-            throw new IllegalArgumentException("Active task count > 4");
+            throw new IllegalArgumentException("The active number of tasks for the user with makerId: " +
+                    makerId +
+                    " is greater than the allowed limit");
         }
         TaskEntity updateTaskEntity = new TaskEntity(
                 taskEntity.getId(),
@@ -81,32 +86,41 @@ public class TaskService {
         return toDomainTask(updateTaskEntity);
     }
 
+    public Task endTask(Long taskId){
+        TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
+                new EntityNotFoundException("Not found task id = "+taskId));
+
+        TaskEntity updateTaskEntity = new TaskEntity(
+                taskEntity.getId(),
+                taskEntity.getCreatorId(),
+                taskEntity.getMakerId(),
+                Status.DONE,
+                taskEntity.getCreateDataTime(),
+                taskEntity.getDeadlineData(),
+                taskEntity.getPriority()
+        );
+        repo.save(updateTaskEntity);
+        return toDomainTask(updateTaskEntity);
+    }
+
+
+
 
     public Task updateTask(Long taskId, Task updTask){
-        if(!repo.existsById(taskId)){
-            throw new EntityNotFoundException("Not found task id = "+taskId);
-        }
         TaskEntity taskEntity = repo.findById(taskId).orElseThrow(()->
             new EntityNotFoundException("Not found task id = "+taskId));
         if(!taskId.equals(updTask.id())){
             throw new IllegalArgumentException("The request id and the id in the request body do not match");
         }
-        if(repo.getById(taskId).getStatus().equals(Status.DONE)&&!(updTask.status().equals(Status.IN_PROGRESS))){
+        if(taskEntity.getStatus().equals(Status.DONE)){
             throw new IllegalArgumentException("Status cannot be done");
-        }
-        if(updTask.status().equals(Status.IN_PROGRESS)){
-            Long makerId = taskEntity.getMakerId();
-            List<TaskEntity> taskEntities = repo.findAllByMakerId(makerId);
-            if (taskEntities.size()>4){
-                throw new IllegalArgumentException("Active task count > 4");
-            }
         }
         TaskEntity updateEntity = new TaskEntity(
                 taskEntity.getId(),
-                updTask.creatorId(),
+                taskEntity.getCreatorId(),
                 updTask.makerId(),
-                updTask.status(),
-                updTask.createDataTime(),
+                taskEntity.getStatus(),
+                taskEntity.getCreateDataTime(),
                 updTask.deadlineData(),
                 updTask.priority()
         );
